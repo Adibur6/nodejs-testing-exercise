@@ -97,3 +97,51 @@ describe("GET /user/:id", () => {
     expect(response.body).to.have.property("error", "Database error");
   });
 });
+
+describe("POST /users", () => {
+  let saveStub:SinonStub;
+  
+  // Setup and cleanup stubs
+  beforeEach(() => {
+    saveStub = sinon.stub(User.prototype, "save");
+  });
+  
+  afterEach(() => {
+    // Restore the original save method after each test
+    saveStub.restore();
+  });
+  
+  it("should create a new user and respond with status 201 when all fields are valid", async () => {
+    const newUser = { name: "John Doe", email: "john@example.com" };
+  
+    // Stub `save` to resolve with the new user
+    saveStub.resolves(newUser);
+  
+    const response = await request(app).post("/users").send(newUser).expect(201);
+  
+    expect(response.body).to.be.an("object");
+    expect(response.body).to.have.property("name", "John Doe");
+    expect(response.body).to.have.property("email", "john@example.com");
+  });
+  
+  it("should respond with status 400 when name or email is missing", async () => {
+    const invalidUser = { name: "John Doe" }; // Missing email
+  
+    const response = await request(app).post("/users").send(invalidUser).expect(400);
+  
+    expect(response.body).to.have.property("error", "Name and email are required");
+  });
+  
+  it("should respond with status 500 when there is a server error", async () => {
+    const newUser = { name: "John Doe", email: "john@example.com" };
+  
+    // Stub `save` to simulate a server error
+    saveStub.rejects(new Error("Database error"));
+  
+    const response = await request(app).post("/users").send(newUser).expect(500);
+  
+    expect(response.body).to.have.property("error", "Database error");
+  });
+  });
+  
+  
