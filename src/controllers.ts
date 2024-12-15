@@ -25,13 +25,18 @@ export const getUser = async (req: Request, res: Response) => {
 };
 
 export const createUser = async (req: Request, res: Response) => {
-  try {
-    const newUser = new User(req.body);
-    await newUser.save();
-    res.status(201).json(newUser);
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
-  }
+    const { name, email } = req.body;
+    if (!name || !email) {
+        res.status(400).json({ error: 'Name and email are required' });
+        return 
+    }
+    try {
+        const newUser = new User(req.body);
+        await newUser.save();
+        res.status(201).json(newUser);
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
 export const updateUser = async (req: Request, res: Response) => {
