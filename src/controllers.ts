@@ -40,17 +40,22 @@ export const createUser = async (req: Request, res: Response) => {
 };
 
 export const updateUser = async (req: Request, res: Response) => {
-  try {
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedUser) {
-        
-        res.status(404).json({ error: 'User not found' });
-        return ; 
+    const { name, email } = req.body;
+    if (!name || !email) {
+        res.status(400).json({ error: 'Name and email are required' });
+        return;
     }
-    res.status(200).json(updatedUser);
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
-  }
+
+    try {
+        const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!updatedUser) {
+            res.status(404).json({ error: 'User not found' });
+            return;
+        }
+        res.status(200).json(updatedUser);
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
 export const deleteUser = async (req: Request, res: Response) => {
