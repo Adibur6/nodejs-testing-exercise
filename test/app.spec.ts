@@ -145,3 +145,62 @@ describe("POST /users", () => {
   });
   
   
+  describe("PUT /users/:id", () => {
+    let findByIdAndUpdateStub:SinonStub;
+    
+    // Setup and cleanup stubs
+    beforeEach(() => {
+      findByIdAndUpdateStub = sinon.stub(User, "findByIdAndUpdate");
+    });
+    
+    afterEach(() => {
+      // Restore the original findByIdAndUpdate method after each test
+      findByIdAndUpdateStub.restore();
+    });
+    
+    it("should update the user and respond with status 200 when all fields are valid", async () => {
+      const updatedUser = { name: "John Doe", email: "john@example.com" };
+      const mockUpdatedUser = { _id: "12345", ...updatedUser };
+    
+      // Stub `findByIdAndUpdate` to resolve with the updated user
+      findByIdAndUpdateStub.resolves(mockUpdatedUser);
+    
+      const response = await request(app).put("/users/12345").send(updatedUser).expect(200);
+    
+      expect(response.body).to.be.an("object");
+      expect(response.body).to.have.property("name", "John Doe");
+      expect(response.body).to.have.property("email", "john@example.com");
+    });
+    
+    it("should respond with status 400 when name or email is missing", async () => {
+      const invalidUser = { name: "John Doe" }; // Missing email
+    
+      const response = await request(app).put("/users/12345").send(invalidUser).expect(400);
+    
+      expect(response.body).to.have.property("error", "Name and email are required");
+    });
+    
+    it("should respond with status 404 when user is not found", async () => {
+      const updatedUser = { name: "John Doe", email: "john@example.com" };
+    
+      // Stub `findByIdAndUpdate` to resolve with null (user not found)
+      findByIdAndUpdateStub.resolves(null);
+    
+      const response = await request(app).put("/users/12345").send(updatedUser).expect(404);
+    
+      expect(response.body).to.have.property("error", "User not found");
+    });
+    
+    it("should respond with status 500 when there is a server error", async () => {
+      const updatedUser = { name: "John Doe", email: "john@example.com" };
+    
+      // Stub `findByIdAndUpdate` to simulate a server error
+      findByIdAndUpdateStub.rejects(new Error("Database error"));
+    
+      const response = await request(app).put("/users/12345").send(updatedUser).expect(500);
+    
+      expect(response.body).to.have.property("error", "Database error");
+    });
+    });
+    
+    
