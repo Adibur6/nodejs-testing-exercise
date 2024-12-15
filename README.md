@@ -1,3 +1,5 @@
+The main purpose of this project is to test APIs and set up GitHub Actions to automatically test on each pull request and push.
+
 ## Getting Started
 
 1. **Clone this repository:**
