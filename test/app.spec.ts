@@ -237,7 +237,7 @@ describe("DELETE /users/:id", () => {
 
     findByIdAndDeleteStub.resolves(mockDeletedUser);
 
-    const response = await request(app).delete("/user/12345").expect(204);
+    const response = await request(app).delete("/users/12345").expect(204);
 
     expect(response.body).to.be.empty;
   });
