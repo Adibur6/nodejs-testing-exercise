@@ -203,4 +203,47 @@ describe("POST /users", () => {
     });
     });
     
+    describe("DELETE /users/:id", () => {
+      let findByIdAndDeleteStub:SinonStub;
+      
+      // Setup and cleanup stubs
+      beforeEach(() => {
+        findByIdAndDeleteStub = sinon.stub(User, "findByIdAndDelete");
+      });
+      
+      afterEach(() => {
+        // Restore the original findByIdAndDelete method after each test
+        findByIdAndDeleteStub.restore();
+      });
+      
+      it("should delete the user and respond with status 204 when the user exists", async () => {
+        const mockDeletedUser = { _id: "12345", name: "John Doe", email: "john@example.com" };
+      
+        // Stub `findByIdAndDelete` to resolve with the deleted user
+        findByIdAndDeleteStub.resolves(mockDeletedUser);
+      
+        const response = await request(app).delete("/users/12345").expect(204);
+      
+        // No content expected with status 204
+        expect(response.body).to.be.empty;
+      });
+      
+      it("should respond with status 404 when user is not found", async () => {
+        // Stub `findByIdAndDelete` to resolve with null (user not found)
+        findByIdAndDeleteStub.resolves(null);
+      
+        const response = await request(app).delete("/users/12345").expect(404);
+      
+        expect(response.body).to.have.property("error", "User not found");
+      });
+      
+      it("should respond with status 500 when there is a server error", async () => {
+        // Stub `findByIdAndDelete` to simulate a server error
+        findByIdAndDeleteStub.rejects(new Error("Database error"));
+      
+        const response = await request(app).delete("/users/12345").expect(500);
+      
+        expect(response.body).to.have.property("error", "Database error");
+      });
+      });
     
