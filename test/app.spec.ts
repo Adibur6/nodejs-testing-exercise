@@ -52,3 +52,48 @@ describe("GET /users", () => {
         sinon.assert.calledOnce(findStub);
     });
 });
+
+describe("GET /user/:id", () => {
+  let findByIdStub:SinonStub;
+
+  // Setup and cleanup stubs
+  beforeEach(() => {
+    // Stub the `findById` method of the User model
+    findByIdStub = sinon.stub(User, "findById");
+  });
+
+  afterEach(() => {
+    // Restore the original method after each test
+    findByIdStub.restore();
+  });
+
+  it("should return a user and respond with status 200 when user is found", async () => {
+    const mockUser = { _id: "12345", name: "John Doe", email: "john@example.com", age: 25 };
+
+    // Stub `findById` to resolve with a mock user
+    findByIdStub.resolves(mockUser);
+
+    const response = await request(app).get("/users/12345").expect(200);
+
+    expect(response.body).to.be.an("object");
+    expect(response.body).to.deep.include(mockUser);
+  });
+
+  it("should respond with status 404 when user is not found", async () => {
+    // Stub `findById` to resolve with null (user not found)
+    findByIdStub.resolves(null);
+
+    const response = await request(app).get("/users/12345").expect(404);
+
+    expect(response.body).to.have.property("error", "User not found");
+  });
+
+  it("should respond with status 500 when there is a server error", async () => {
+    // Stub `findById` to reject with an error
+    findByIdStub.rejects(new Error("Database error"));
+
+    const response = await request(app).get("/users/12345").expect(500);
+
+    expect(response.body).to.have.property("error", "Database error");
+  });
+});
